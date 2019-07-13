@@ -41,7 +41,11 @@ config BOARD_NUC977
 config BOARD_NUC972
 	depends on !USE_OF
     bool "NUC972 Development Board"
-
+	
+config BOARD_NUC972_RAINBOW
+	depends on !USE_OF
+    bool "Xbrother Rainbow NUC972 Board"
+	
 config BOARD_TOMATO
 	depends on !USE_OF
     bool "NUC976 Tomato Board"
