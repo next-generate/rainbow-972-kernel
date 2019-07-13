@@ -48,7 +48,7 @@ $(obj)/Image: vmlinux FORCE
 	$(call if_changed,objcopy)
 	@$(kecho) '  Kernel: $@ is ready'
 ifeq ($(CONFIG_CPU_NUC970),y)
-	cp $@   /home/rick/rainbow/tftproot/nuc972/image/
+	cp $@   /home/rick/rainbow/tftproot/nuc972/image/vmlinux
 endif
 ifeq ($(CONFIG_CPU_N9H30),y)
 	cp $@   ../image/n9h30image
@@ -85,7 +85,8 @@ $(obj)/uImage:	$(obj)/zImage FORCE
 	$(call if_changed,uimage)
 	@$(kecho) '  Image $@ is ready'
 ifeq ($(CONFIG_CPU_NUC970),y)
-	cp $@   ../image/970uimage
+	#cp $@   ../image/970uimage
+	cp $@ /home/rick/rainbow/tftproot/nuc972/image/   
 endif
 ifeq ($(CONFIG_CPU_N9H30),y)
 	cp $@   ../image/n9h30uimage
