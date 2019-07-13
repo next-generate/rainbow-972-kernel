@@ -59,7 +59,7 @@ $(obj)/compressed/vmlinux: $(obj)/Image FORCE
 $(obj)/zImage:	$(obj)/compressed/vmlinux FORCE
 	$(call if_changed,objcopy)
 	@$(kecho) '  Kernel: $@ is ready'
-
+	cp $@   /home/rick/rainbow/tftproot/nuc972/image/
 endif
 
 ifneq ($(LOADADDR),)
