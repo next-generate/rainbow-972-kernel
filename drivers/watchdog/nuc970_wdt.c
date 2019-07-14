@@ -159,7 +159,7 @@ static int nuc970wdt_set_timeout(struct watchdog_device *wdd, unsigned int timeo
 }
 
 static const struct watchdog_info nuc970wdt_info = {
-	.identity	= "nuc970/n9h30 watchdog",
+	.identity	= "nuc972 watchdog",
 	.options	= WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE,
 };
 
@@ -355,5 +355,5 @@ static struct platform_driver nuc970wdt_driver = {
 
 module_platform_driver(nuc970wdt_driver);
 
-MODULE_DESCRIPTION("Watchdog driver for NUC970/N9H30");
+MODULE_DESCRIPTION("Watchdog driver for NUC972");
 MODULE_LICENSE("GPL");

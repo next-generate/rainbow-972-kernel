@@ -476,8 +476,9 @@ static int watchdog_release(struct inode *inode, struct file *file)
 	/* If the watchdog was not stopped, send a keepalive ping */
 	if (err < 0) {
 		mutex_lock(&wdd->lock);
-		if (!test_bit(WDOG_UNREGISTERED, &wdd->status))
-			dev_crit(wdd->dev, "watchdog did not stop!\n");
+		//rick comments here
+		//if (!test_bit(WDOG_UNREGISTERED, &wdd->status))
+		//	dev_crit(wdd->dev, "watchdog did not stop!\n");
 		mutex_unlock(&wdd->lock);
 		watchdog_ping(wdd);
 	}
