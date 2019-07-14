@@ -210,6 +210,8 @@ static const unsigned sd0_pins[] = {0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x
 static const unsigned sd1_0_pins[] = {0x85, 0x86, 0x87, 0x88, 0x89, 0x8A, 0x8C, 0x8D}; // Port I
 static const unsigned sd1_1_pins[] = {0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49}; // Port E
 static const unsigned sd1_2_pins[] = {0x76, 0x77, 0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D}; // Port H
+static const unsigned sd01_0_pins[] = {0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
+					0x85, 0x86, 0x87, 0x88, 0x89, 0x8A, 0x8C, 0x8D}; // Port I
 static const unsigned sd01_1_pins[] = {0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
 					0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49}; // Port E
 static const unsigned sd01_2_pins[] = {0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
@@ -231,7 +233,7 @@ static const unsigned usbh_oc_pin[] = {0x71};            // over-current
 static const unsigned usbd_pin[] = {0x70};  // vbvld
 
 static const unsigned i2c0_pins[] = {0x60, 0x61};
-
+static const unsigned i2c1_0_pins[] = {0x10, 0x11};
 static const unsigned i2c1_1_pins[] = {0x62, 0x63};
 static const unsigned i2c1_2_pins[] = {0x72, 0x73};
 static const unsigned i2c1_3_pins[] = {0x83, 0x84};
@@ -352,22 +354,7 @@ static const unsigned eint6_1_pin[] = {0x81};
 static const unsigned eint7_0_pin[] = {0x77};
 static const unsigned eint7_1_pin[] = {0x82};
 
-static const unsigned ebi8_0_pin[] = {
-#ifdef CONFIG_NUC970_EBI_CS0
-					0x38, //nCS0
-#endif
-#ifdef CONFIG_NUC970_EBI_CS1
-					0x39, //nCS1
-#endif
-#ifdef CONFIG_NUC970_EBI_CS2
-					0x3A, //nCS2
-#endif
-#ifdef CONFIG_NUC970_EBI_CS3
-					0x3B, //nCS3
-#endif
-#ifdef CONFIG_NUC970_EBI_CS4
-					0x3C, //nCS4
-#endif
+static const unsigned ebi8_0_pin[] = {0x38,  // nCS0
 				      0x3D, 0x3E, 0x3F, //nWAIT, nOE, nWE,
 				      0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D, //address0~10
                                       0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87};  // data0~7
@@ -387,22 +374,7 @@ static const unsigned ebi8_4_pin[] = {0x3C,  // nCS4
 				      0x3D, 0x3E, 0x3F, //nWAIT, nOE, nWE,
 				      0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D, //address0~10
                                       0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87};  // data0~7
-static const unsigned ebi16_0_pin[] = {
-#ifdef CONFIG_NUC970_EBI_CS0
-                                        0x38, //nCS0
-#endif
-#ifdef CONFIG_NUC970_EBI_CS1
-                                        0x39, //nCS1
-#endif
-#ifdef CONFIG_NUC970_EBI_CS2
-                                        0x3A, //nCS2
-#endif
-#ifdef CONFIG_NUC970_EBI_CS3
-                                        0x3B, //nCS3
-#endif
-#ifdef CONFIG_NUC970_EBI_CS4
-                                        0x3C, //nCS4
-#endif
+static const unsigned ebi16_0_pin[] = {0x38,  // nCS0
 
 				       0x3D, 0x3E, 0x3F, //nWAIT, nOE, nWE,
 				       0x7E, 0x7F, //nBE0,nBE1
@@ -563,6 +535,12 @@ static const struct nuc970_pinctrl_group nuc970_pinctrl_groups[] = {
 		.func = 0x6,
 	},
 	{
+		.name = "sd01_0_grp",
+		.pins = sd01_0_pins,
+		.num_pins = ARRAY_SIZE(sd01_0_pins),
+		.func = 0x4,
+	},
+	{
 		.name = "sd01_1_grp",
 		.pins = sd01_1_pins,
 		.num_pins = ARRAY_SIZE(sd01_1_pins),
@@ -638,6 +616,12 @@ static const struct nuc970_pinctrl_group nuc970_pinctrl_groups[] = {
 		.name = "i2c0_grp",
 		.pins = i2c0_pins,
 		.num_pins = ARRAY_SIZE(i2c0_pins),
+		.func = 0x8,
+	},
+	{
+		.name = "i2c1_0_grp",
+		.pins = i2c1_0_pins,
+		.num_pins = ARRAY_SIZE(i2c1_0_pins),
 		.func = 0x8,
 	},
 	{
@@ -1400,14 +1384,14 @@ static const char * const kpi_4col_groups[] = {"kpi_2_grp", "kpi_6_grp"};
 static const char * const kpi_8col_groups[] = {"kpi_3_grp", "kpi_7_grp"};
 static const char * const sd0_groups[] = {"sd0_grp"};
 static const char * const sd1_groups[] = {"sd1_0_grp", "sd1_1_grp", "sd1_2_grp"};
-static const char * const sd01_groups[] = {"sd01_1_grp", "sd01_2_grp"};
+static const char * const sd01_groups[] = {"sd01_0_grp", "sd01_1_grp", "sd01_2_grp"};
 static const char * const nand_groups[] = {"nand_0_grp", "nand_1_grp"};
 static const char * const nand_ctl1_groups[] = {"nand_2_grp", "nand_3_grp"};
 static const char * const emmc_groups[] = {"emmc_0_grp", "emmc_1_grp"};
 static const char * const usbh_ppwr_groups[] = {"usbh_pe_grp", "usbh_pf_grp", "usbh_oc_grp" };
 static const char * const usbd_groups[] = {"usbd_grp"};
 static const char * const i2c0_groups[] = {"i2c0_grp"};
-static const char * const i2c1_groups[] = {"i2c1_1_grp", "i2c1_2_grp", "i2c1_3_grp"};
+static const char * const i2c1_groups[] = {"i2c1_0_grp", "i2c1_1_grp", "i2c1_2_grp", "i2c1_3_grp"};
 static const char * const i2s_groups[] = {"i2s_grp"};
 static const char * const uart0_groups[] = {"uart0_grp"};
 static const char * const uart1_groups[] = {"uart1_0_grp", "uart1_3_grp", "uart1_5_grp"};
@@ -2294,16 +2278,8 @@ static const struct pinctrl_map nuc970_pinmap[] = {
                 .name = "sd01-PI",
                 .type = PIN_MAP_TYPE_MUX_GROUP,
                 .ctrl_dev_name = "pinctrl-nuc970",
-                .data.mux.function = "sd0",
-                .data.mux.group = "sd0_grp",
-        },
-        {
-                .dev_name = "nuc970-sdh",
-                .name = "sd01-PI",
-                .type = PIN_MAP_TYPE_MUX_GROUP,
-                .ctrl_dev_name = "pinctrl-nuc970",
-                .data.mux.function = "sd1",
-                .data.mux.group = "sd1_0_grp",
+		.data.mux.function = "sd01",
+		.data.mux.group = "sd01_0_grp",
         },
 	{
 		.dev_name = "nuc970-sdh",
@@ -2416,6 +2392,14 @@ static const struct pinctrl_map nuc970_pinmap[] = {
 		.ctrl_dev_name = "pinctrl-nuc970",
 		.data.mux.function = "i2c0",
 		.data.mux.group = "i2c0_grp",
+	},
+	{
+		.dev_name = "nuc970-i2c1",
+		.name = "i2c1-PB",
+		.type = PIN_MAP_TYPE_MUX_GROUP,
+		.ctrl_dev_name = "pinctrl-nuc970",
+		.data.mux.function = "i2c1",
+		.data.mux.group = "i2c1_0_grp",
 	},
 	{
 		.dev_name = "nuc970-i2c1",
@@ -3651,7 +3635,7 @@ static int nuc970_pinctrl_probe(struct platform_device *pdev)
 
 	pctl = pinctrl_register(&nuc970_pinctrl_desc, &pdev->dev, NULL);
 	if (IS_ERR(pctl))
-		pr_err("could not register NUC970/N9H30 pin driver\n");
+		pr_err("could not register NUC972 pin driver\n");
 
 	platform_set_drvdata(pdev, pctl);
 
