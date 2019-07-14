@@ -58,6 +58,7 @@
 #include <linux/platform_data/keypad-nuc970.h>
 
 #include "cpu.h"
+#include <linux/w1-gpio.h>
 
 /* USB EHCI Host Controller */
 #if defined(CONFIG_USB_EHCI_HCD) || defined(CONFIG_USB_EHCI_HCD_MODULE)
@@ -1542,8 +1543,28 @@ struct platform_device nuc970_pwm_bl = {
 	},
 };
 #endif
+static void w1_enable_external_pullup(int enable)
+{
+	if (enable)
+		gpio_direction_input(NUC970_PG1);
+	else
+		gpio_direction_output(NUC970_PG1,1);
+}
+static struct w1_gpio_platform_data ds18b20_w1_gpio = {
+.pin = NUC970_PG1,
+.is_open_drain = 0,
+.enable_external_pullup = w1_enable_external_pullup,
+};
+static struct platform_device nuc977_ds18b20_device = {
+		.name    = "w1-gpio",
+		.id      = -1,
+		.dev     = {
+		.platform_data  =&ds18b20_w1_gpio,
+		},
+};
 static struct platform_device *nuc970_public_dev[] __initdata = {
         &nuc970_serial_device0,
+		&nuc977_ds18b20_device,
 
 #if defined(CONFIG_NUC970_UART1) || defined(CONFIG_NUC970_UART1_MODULE)
 		&nuc970_serial_device1,

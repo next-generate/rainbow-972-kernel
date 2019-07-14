@@ -89,7 +89,7 @@ static void __init nuc970_reserve_memoey(void)
 		printk("Failed to reserve memory 0x0~0x400\n");
 }
 #ifdef CONFIG_CPU_NUC970
-MACHINE_START(NUC970, "NUC970")
+MACHINE_START(NUC970, "RainbowNuc972")
 #elif defined (CONFIG_CPU_N9H30)
 MACHINE_START(NUC970, "N9H30")
 #endif
