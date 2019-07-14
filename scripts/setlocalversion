@@ -64,7 +64,7 @@ scm_version()
 			else
 				if [ -n "`git tag -l`" ]; then
 					tag=`git tag -l`
-					printf '%s'  $tag
+					printf '-%s'  $tag
 				else
 					printf '%s%s' -g $head
 				fi
