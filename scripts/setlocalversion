@@ -62,9 +62,9 @@ scm_version()
 
 			# If we don't have a tag at all we print -g{commitish}.
 			else
-				if [-n "`git tag -l`" ]; then
+				if [ -n "`git tag -l`" ]; then
 					tag=`git tag -l`
-					printf '%s%s' -g $tag
+					printf '%s'  $tag
 				else
 					printf '%s%s' -g $head
 				fi
