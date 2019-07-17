@@ -76,6 +76,7 @@ struct uart_nuc970_port {
 	unsigned char		mcr_force;	/* mask of forced bits */
 
 	struct serial_rs485     rs485;          /* rs485 settings */
+	int					rts_gpio;//rick rts ==ready to send 
 	/*
 	 * We provide a per-port pm hook.
 	 */

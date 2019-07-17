@@ -139,7 +139,7 @@ static void nuc970_gpio_core_set(struct gpio_chip *gc, unsigned gpio_num,
 	    nuc970_gpio_cla_port(gpio_num, &port_num);
 	spin_lock(&gpio_lock);
 
-
+	if ((__raw_readl(port->dir) & (1 << port_num))) {	//GPIO OUT
 	value = __raw_readl(port->out);
 	if (val)
 		value |= (1 << port_num);
@@ -147,6 +147,14 @@ static void nuc970_gpio_core_set(struct gpio_chip *gc, unsigned gpio_num,
 		value &= ~(1 << port_num);
 	__raw_writel(value, port->out);
 
+	} else {		//GPIO IN
+		value = __raw_readl(port->in);
+		if (val)
+			value |= (1 << port_num);
+		else
+			value &= ~(1 << port_num);
+		__raw_writel(value, port->in);;
+	}
 
 	spin_unlock(&gpio_lock);
 }
@@ -182,7 +190,7 @@ static int nuc970_gpio_core_to_request(struct gpio_chip *chip, unsigned offset)
 	}
 
 	value =	( __raw_readl((volatile unsigned int *)reg) & (0xf<<(num*4)))>>(num*4);
-	if(value != 0)
+	if(value>0 && value<0xf)
 	{
 			printk(KERN_ERR "Please Check GPIO%c%02d's multi-function = 0x%x \n",(char)(65+group),num1,value);
 			return -EINVAL;
