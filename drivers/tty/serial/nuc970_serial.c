@@ -1399,7 +1399,13 @@ static int nuc970serial_probe(struct platform_device *pdev)
 		up->port.private_data 	= p->private_data;
 		up->port.dev 			= &pdev->dev;
 		up->port.flags 			= ASYNC_BOOT_AUTOCONF;
-
+		//use the default setting for serial 1-8 
+		if(i>= 1 && i<= 8){
+			up->rs485.flags |= SER_RS485_ENABLED;
+			up->rs485.delay_rts_after_send = 0x80;
+			up->rs485.delay_rts_before_send = 0x80;
+		}
+		
 		switch(i){
 		case 1:
 		//	up->rts_gpio = GPIO_TO_PIN(7,6);//PG.6
