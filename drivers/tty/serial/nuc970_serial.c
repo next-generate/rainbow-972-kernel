@@ -45,6 +45,8 @@
 #include <mach/regs-gcr.h>
 #include <mach/mfp.h>
 
+#include <mach/gpio.h>
+#include <linux/gpio.h>
 
 #include "nuc970_serial.h"
 
@@ -60,6 +62,11 @@
 #error Please enable high resolution timer if auto direction is disabled
 #endif
 #endif
+
+
+#define GPIO_TO_PIN(bank, gpio) (32 * (bank) + (gpio))
+#define GPIO_INVALID -1
+#define GPIO_IS_VALID(port) ((port != -1)? 1:0)
 
 static struct uart_driver nuc970serial_reg;
 
@@ -195,10 +202,14 @@ static inline void __stop_tx(struct uart_nuc970_port *p)
 {
 	unsigned int ier;
 	struct tty_struct *tty = p->port.state->port.tty;
+	struct circ_buf *xmit = &p->port.state->xmit;
+	int res;
 
 	if ((ier = serial_in(p, UART_REG_IER)) & THRE_IEN) {
 		serial_out(p, UART_REG_IER, ier & ~THRE_IEN);
 	}
+
+	#if 0
 	if (p->rs485.flags & SER_RS485_ENABLED){
 #ifdef DISABLE_AUTO_DIRECTION
 		if((serial_in(p, UART_REG_FSR) & TE_FLAG) == 0)//not TX END flag
@@ -223,6 +234,22 @@ static inline void __stop_tx(struct uart_nuc970_port *p)
 
 #endif
 	}
+#else
+	/* if there's no more data to send, turn off rts */
+	if (p->rs485.flags & SER_RS485_ENABLED){
+
+		if (uart_circ_empty(xmit)) {
+			/* if rts not already disabled */
+			res = (p->rs485.flags & SER_RS485_RTS_AFTER_SEND) ? 1 : 0;
+			if (gpio_get_value(p->rts_gpio) != res) {
+				if (p->rs485.delay_rts_after_send > 0) {
+					mdelay(p->rs485.delay_rts_after_send);
+				}
+				gpio_set_value(p->rts_gpio, res);
+			}
+		}
+	}
+#endif	
 	if (tty->termios.c_line == N_IRDA)
 	{
 		while(!(serial_in(p, UART_REG_FSR) & TX_EMPTY));
@@ -247,7 +274,8 @@ static void nuc970serial_start_tx(struct uart_port *port)
 	struct uart_nuc970_port *up = (struct uart_nuc970_port *)port;
 	unsigned int ier;
 	struct tty_struct *tty = up->port.state->port.tty;
-
+	int res;
+#if 0
 	if (tty->termios.c_line == N_IRDA)
 	{
 		serial_out(up, UART_REG_IRCR, (serial_in(up, UART_REG_IRCR) | 0x2) ); // Tx enable
@@ -255,7 +283,24 @@ static void nuc970serial_start_tx(struct uart_port *port)
 
 	if (up->rs485.flags & SER_RS485_ENABLED)
 		rs485_stop_rx(up);
+#else
+/* handle rs485 */
+if (up->rs485.flags & SER_RS485_ENABLED) {
+	/* if rts not already enabled */
+	res = (up->rs485.flags & SER_RS485_RTS_ON_SEND) ? 1 : 0;
+	if (gpio_get_value(up->rts_gpio) != res) {
+		gpio_set_value(up->rts_gpio, res);
+		if (up->rs485.delay_rts_before_send > 0) {
+			mdelay(up->rs485.delay_rts_before_send);
+		}
+	}
+}
 
+if ((up->rs485.flags & SER_RS485_ENABLED) &&
+	!(up->rs485.flags & SER_RS485_RX_DURING_TX))
+	rs485_stop_rx(up);
+
+#endif
     #if 0
 	if (!((ier = serial_in(up, UART_REG_IER)) & THRE_IEN)) {
 		ier |= THRE_IEN;
@@ -440,6 +485,7 @@ static irqreturn_t nuc970serial_interrupt(int irq, void *dev_id)
 	unsigned int isr;
 
 	isr = serial_in(up, UART_REG_ISR);
+	
 
 	if (isr & (RDA_IF | TOUT_IF))
 		receive_chars(up);
@@ -783,7 +829,7 @@ nuc970serial_type(struct uart_port *port)
 void nuc970serial_config_rs485(struct uart_port *port, struct serial_rs485 *rs485conf)
 {
 	struct uart_nuc970_port *p = to_nuc970_uart_port(port);
-
+	int val;
 	spin_lock(&port->lock);
 
 	p->rs485 = *rs485conf;
@@ -793,6 +839,7 @@ void nuc970serial_config_rs485(struct uart_port *port, struct serial_rs485 *rs48
 
 	serial_out(p, UART_FUN_SEL, (serial_in(p, UART_FUN_SEL) & ~FUN_SEL_Msk) );
 
+#if 0
 	if(rs485conf->flags & SER_RS485_ENABLED)
 	{
 		serial_out(p, UART_FUN_SEL, (serial_in(p, UART_FUN_SEL) | FUN_SEL_RS485) );
@@ -826,6 +873,19 @@ void nuc970serial_config_rs485(struct uart_port *port, struct serial_rs485 *rs48
 		serial_out(p,UART_REG_ALT_CSR,(serial_in(p, UART_REG_ALT_CSR) | (1 << 10)) );
 #endif
 	}
+#else
+		p->rts_gpio = p->rs485.rts_gpio;
+		
+		if (GPIO_IS_VALID(p->rts_gpio)) {
+		/* enable / disable rts */
+		val = (p->rs485.flags & SER_RS485_ENABLED) ?
+			SER_RS485_RTS_AFTER_SEND : SER_RS485_RTS_ON_SEND;
+		val = (p->rs485.flags & val) ? 1 : 0;
+		gpio_set_value(p->rts_gpio, val);
+		
+	} else
+		p->rs485.flags &= ~SER_RS485_ENABLED;
+#endif
 
 	spin_unlock(&port->lock);
 }
@@ -1317,6 +1377,8 @@ static int nuc970serial_probe(struct platform_device *pdev)
 
 //	memset(&port, 0, sizeof(struct uart_port));
 
+	printk("rick: nuc970serial_probe\n");
+
 	retval = nuc970serial_pinctrl(pdev);
 	if(retval != 0)
 		return retval;
@@ -1337,6 +1399,68 @@ static int nuc970serial_probe(struct platform_device *pdev)
 		up->port.private_data 	= p->private_data;
 		up->port.dev 			= &pdev->dev;
 		up->port.flags 			= ASYNC_BOOT_AUTOCONF;
+
+		switch(i){
+		case 1:
+		//	up->rts_gpio = GPIO_TO_PIN(7,6);//PG.6
+			up->rs485.rts_gpio = up->rts_gpio;
+			up->rts_gpio = GPIO_TO_PIN(8,2);//PI.2
+			gpio_request(GPIO_TO_PIN(8,2), "NULL");
+			gpio_direction_output(GPIO_TO_PIN(8,2),0);
+			break;
+		case 2:
+			//p->rts_gpio = GPIO_TO_PIN(7,7);//PG.7
+			up->rs485.rts_gpio = up->rts_gpio;
+			up->rts_gpio = GPIO_TO_PIN(8,5);//PI.5
+			gpio_request(GPIO_TO_PIN(8,5), "NULL");
+			gpio_direction_output(GPIO_TO_PIN(8,5),0);
+			break;
+		case 3:
+			//up->rts_gpio = GPIO_TO_PIN(7,8);//PG.8
+			up->rs485.rts_gpio = up->rts_gpio;
+			up->rts_gpio = GPIO_TO_PIN(8,6);//PI.6
+			gpio_request(GPIO_TO_PIN(8,3), "NULL");
+			gpio_direction_output(GPIO_TO_PIN(8,3),0);
+			break;
+		case 4:
+			//up->rts_gpio = GPIO_TO_PIN(7,9);//PG.9
+			up->rts_gpio = GPIO_TO_PIN(8,7);//PI.7
+			gpio_request(GPIO_TO_PIN(8,7), "NULL");
+			gpio_direction_output(GPIO_TO_PIN(8,7),0);
+			break;
+		case 5:
+			//up->rts_gpio = GPIO_TO_PIN(1,12);//PA.12
+			up->rs485.rts_gpio =up->rts_gpio;
+			up->rts_gpio = GPIO_TO_PIN(8,8);//PI.8
+			gpio_request(GPIO_TO_PIN(8,8), "NULL");
+			gpio_direction_output(GPIO_TO_PIN(8,8),0);
+			break;
+		case 6:
+			//up->rts_gpio = GPIO_TO_PIN(1,13);//PA.13
+			up->rs485.rts_gpio = up->rts_gpio;
+			up->rts_gpio = GPIO_TO_PIN(8,9);//PI.9
+			gpio_request(GPIO_TO_PIN(8,9), "NULL");
+			gpio_direction_output(GPIO_TO_PIN(8,9),0);
+			break;
+		case 7:
+			up->rs485.rts_gpio = up->rts_gpio;
+			//up->rts_gpio = GPIO_TO_PIN(1,14);//PA.14
+			gpio_request(GPIO_TO_PIN(8,10), "NULL");
+			gpio_direction_output(GPIO_TO_PIN(8,10),0);
+			up->rts_gpio = GPIO_TO_PIN(8,10);//PI.10
+			break;
+		case 8:
+			up->rs485.rts_gpio = up->rts_gpio;
+			//up->rts_gpio = GPIO_TO_PIN(1,15);//PA.15
+			gpio_request(GPIO_TO_PIN(8,11), "NULL");
+			gpio_direction_output(GPIO_TO_PIN(8,11),0);
+			up->rts_gpio = GPIO_TO_PIN(8,11);//PI.11
+			break;
+		default:
+			//up->rts_gpio = GPIO_INVALID;
+			break;
+		}
+		
 
 		/* Possibly override default I/O functions.  */
 		if (p->serial_in)
