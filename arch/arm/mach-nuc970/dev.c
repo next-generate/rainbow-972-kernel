@@ -813,7 +813,8 @@ struct platform_device nuc970_device_i2c0 = {
 /* I2C clients */
 static struct i2c_board_info __initdata nuc970_i2c_clients1[] =
 {
-	{I2C_BOARD_INFO("at24c02", 0x0),},
+	{I2C_BOARD_INFO("at24c04", 0x0),},
+	{I2C_BOARD_INFO("at24", 0x0),},
 
 };
 
