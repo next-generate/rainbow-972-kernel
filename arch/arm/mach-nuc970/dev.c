@@ -809,6 +809,14 @@ struct platform_device nuc970_device_i2c0 = {
 };
 #endif
 #if defined(CONFIG_I2C_BUS_NUC970_P1) || defined(CONFIG_I2C_BUS_NUC970_P1_MODULE)
+
+/* I2C clients */
+static struct i2c_board_info __initdata nuc970_i2c_clients1[] =
+{
+	{I2C_BOARD_INFO("at24c02", 0x0),},
+
+};
+
 //port 1
 static struct nuc970_platform_i2c nuc970_i2c1_data = {
 	.bus_num = 1,
@@ -1759,6 +1767,10 @@ void __init nuc970_platform_init(struct platform_device **device, int size)
 
 #if defined(CONFIG_I2C_BUS_NUC970_P0) || defined(CONFIG_I2C_BUS_NUC970_P0_MODULE)
 	i2c_register_board_info(0, nuc970_i2c_clients0, sizeof(nuc970_i2c_clients0)/sizeof(struct i2c_board_info));
+#endif
+
+#if defined(CONFIG_I2C_BUS_NUC970_P1) || defined(CONFIG_I2C_BUS_NUC970_P0_MODULE)
+	i2c_register_board_info(1, nuc970_i2c_clients1, sizeof(nuc970_i2c_clients1)/sizeof(struct i2c_board_info));
 #endif
 
 #if defined(CONFIG_GPIO_NUC970) || defined(CONFIG_GPIO_NUC970_MODULE)
