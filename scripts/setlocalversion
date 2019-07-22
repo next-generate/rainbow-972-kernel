@@ -41,7 +41,8 @@ scm_version()
 	if test "$1" = "--short"; then
 		short=true
 	fi
-
+	commit_ssa=`git rev-list --tags --max-count=1`
+	latestagver=`git describe --tags $commit_ssa`
 	# Check for git and a git repo.
 	if test -d .git && head=`git rev-parse --verify --short HEAD 2>/dev/null`; then
 
@@ -62,9 +63,8 @@ scm_version()
 
 			# If we don't have a tag at all we print -g{commitish}.
 			else
-				if [ -n "`git tag -l`" ]; then
-					tag=`git tag -l`
-					printf '%s%s'  - $tag
+				if [ -n "$latestagver" ]; then
+					printf '%s%s'  - $latestagver
 				else
 					printf '%s%s' -g $head
 				fi
