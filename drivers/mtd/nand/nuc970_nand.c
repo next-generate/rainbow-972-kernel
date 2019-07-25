@@ -126,6 +126,7 @@ static const int g_i32ParityNum[ePageSize_CNT][eBCH_CNT] = {
 #ifndef CONFIG_MTD_CMDLINE_PARTS
 #ifndef CONFIG_OF
 static struct mtd_partition partitions[] = {
+#ifdef RAINBOW_XUDU
 	{
 		.name = "u-boot",
 		.offset = 0,
@@ -143,6 +144,56 @@ static struct mtd_partition partitions[] = {
 		.offset = MTDPART_OFS_APPEND,
 		.size = MTDPART_SIZ_FULL
 	}
+#else
+	{
+		.name = "u-boot-master",
+		.offset = 0,
+		.size = 512 * 1024,
+		.ecclayout = (struct nand_ecclayout*)&nuc970_nand_oob
+	},
+	{
+		.name = "env-master",
+		.offset = 0,
+		.size = 512 * 1024,
+		.ecclayout = (struct nand_ecclayout*)&nuc970_nand_oob
+	},
+	{
+		.name = "u-boot-slave",
+		.offset = 0,
+		.size = 512 * 1024,
+		.ecclayout = (struct nand_ecclayout*)&nuc970_nand_oob
+	},
+	{
+		.name = "env-slave",
+		.offset = 0,
+		.size = 512 * 1024,
+		.ecclayout = (struct nand_ecclayout*)&nuc970_nand_oob
+	},
+	{
+		.name = "Kernel",
+		.size = 4 * 1024 * 1024,
+		.offset = MTDPART_OFS_APPEND,
+		.ecclayout = (struct nand_ecclayout*)&nuc970_nand_oob
+	},
+	{
+		.name = "rootfs-master",
+		.size = 26 * 1024 * 1024,
+		.offset = MTDPART_OFS_APPEND,
+		.ecclayout = (struct nand_ecclayout*)&nuc970_nand_oob
+	},
+	{
+		.name = "xbrother-app",
+		.size = 32 * 1024 * 1024,
+		.offset = MTDPART_OFS_APPEND,
+		.ecclayout = (struct nand_ecclayout*)&nuc970_nand_oob
+	},
+	{
+		.name = "xbrother-data",
+		.offset = MTDPART_OFS_APPEND,
+		.size = MTDPART_SIZ_FULL
+	},
+	
+#endif
 };
 #endif
 #endif
