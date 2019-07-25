@@ -153,20 +153,20 @@ static struct mtd_partition partitions[] = {
 	},
 	{
 		.name = "env-master",
-		.offset = 0,
 		.size = 512 * 1024,
+		.offset = MTDPART_OFS_APPEND,
 		.ecclayout = (struct nand_ecclayout*)&nuc970_nand_oob
 	},
 	{
 		.name = "u-boot-slave",
-		.offset = 0,
 		.size = 512 * 1024,
+		.offset = MTDPART_OFS_APPEND,
 		.ecclayout = (struct nand_ecclayout*)&nuc970_nand_oob
 	},
 	{
 		.name = "env-slave",
-		.offset = 0,
 		.size = 512 * 1024,
+		.offset = MTDPART_OFS_APPEND,
 		.ecclayout = (struct nand_ecclayout*)&nuc970_nand_oob
 	},
 	{
